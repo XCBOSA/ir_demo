@@ -2,6 +2,10 @@ package cn.edu.bistu.cs.ir.model;
 
 import lombok.Getter;
 import lombok.Setter;
+import org.apache.lucene.document.Document;
+import org.apache.lucene.document.Field;
+import org.apache.lucene.document.StringField;
+import org.apache.lucene.document.TextField;
 
 import java.util.List;
 
@@ -11,7 +15,7 @@ import java.util.List;
  */
 @Getter
 @Setter
-public class Blog {
+public class Blog implements LucenePipelineAdaptableModel {
 
     /**
      * 页面的唯一ID
@@ -42,4 +46,18 @@ public class Blog {
      * 标签
      */
     private List<String> tags;
+
+    @Override
+    public String getKeyField() {
+        return id;
+    }
+
+    @Override
+    public Document generateDocument() {
+        Document document = new Document();
+        document.add(new StringField("ID", getId(), Field.Store.YES));
+        document.add(new TextField("TITLE", getTitle(), Field.Store.YES));
+        document.add(new TextField("CONTENT", getContent(), Field.Store.YES));
+        return document;
+    }
 }

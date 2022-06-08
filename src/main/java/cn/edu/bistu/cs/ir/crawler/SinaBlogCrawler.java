@@ -23,7 +23,7 @@ public class SinaBlogCrawler implements PageProcessor {
 
     private static final String URL_PREFIX_BLOG = "http://blog.sina.com.cn/s/blog_";
 
-    public static final String RESULT_ITEM_KEY = "BLOG_INFO";
+    public static final String RESULT_ITEM_KEY = "MODEL";
 
     private final Site site;
 

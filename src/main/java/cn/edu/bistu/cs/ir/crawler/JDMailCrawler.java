@@ -59,6 +59,7 @@ public class JDMailCrawler implements PageProcessor {
             model.setName(name);
             model.setPrice(price);
             model.setDescription(description);
+            model.setSku(page.getRequest().getExtra("sku"));
             Request request = new Request("https://club.jd.com/comment/productCommentSummaries.action?referenceIds=" + page.getRequest().getExtra("sku"));
             request.putExtra("model", model);
             page.addTargetRequest(request);
@@ -71,7 +72,7 @@ public class JDMailCrawler implements PageProcessor {
             String rate = new JsonPathSelector("$.CommentsCount[0].GoodRate").select(page.getRawText());
             model.setTotalCommentCount(commentCount);
             model.setRate(rate);
-            page.putField("result", model);
+            page.putField("MODEL", model);
         }
     }
 
