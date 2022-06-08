@@ -100,11 +100,34 @@ public class CrawlerService {
         log.info("启动面向博客园的爬虫，抓取博主ID为[{}]的作者的文章", blogger);
     }
 
+    public void startJDMailCrawler() {
+        if (this.spider != null) {
+            if (!Stopped.equals(this.spider.getStatus())) {
+                log.error("当前有正在运行的爬虫对象，不可以创建新的爬虫");
+                return;
+            }
+        }
+        Site site = Site
+                .me()
+                .setRetryTimes(config.getRetryTimes())
+                .setSleepTime(config.getSleepTime())
+                .setUserAgent(config.getAgent());
+        this.spider = Spider.create(new JDMailCrawler(site));
+        spider.addPipeline(new LucenePipeline(idxService));
+        spider.addPipeline(new JsonFilePipeline(config.getCrawler()));
+        spider.thread(1);
+        for (int i = 0; i < 1; i++) {
+            spider.addUrl("https://list.jd.com/list.html?cat=9987%2C653%2C655&page=" + i + "&s=57&click=0");
+        }
+        spider.runAsync();
+        log.info("启动面向京东商城手机区的爬虫");
+    }
+
     @PostConstruct
     public void init(){
         if(config.isStartCrawler()){
             log.info("系统配置信息中[startCrawler]配置项为true，启动爬虫的运行");
-            startCnBlogCrawler("tencent-cloud-native");
+            startJDMailCrawler();
         }
     }
 }

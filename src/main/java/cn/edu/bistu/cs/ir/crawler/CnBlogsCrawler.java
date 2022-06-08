@@ -61,6 +61,7 @@ public class CnBlogsCrawler implements PageProcessor {
             log.info("获取博文内容页地址[{}]条", blogs.size());
             page.addTargetRequests(blogs);
             //TODO 请大家思考如何添加其他博客目录页的地址?需要解析博客目录页最底部的导航栏
+
             //setSkip方法可以跳过后续的Pipeline的处理
             page.setSkip(true);
         }else if(url.startsWith(blog_prefix)){
