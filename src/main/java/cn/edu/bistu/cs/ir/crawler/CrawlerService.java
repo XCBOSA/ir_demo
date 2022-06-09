@@ -115,8 +115,8 @@ public class CrawlerService {
         this.spider = Spider.create(new JDMailCrawler(site));
         spider.addPipeline(new LucenePipeline(idxService));
         spider.addPipeline(new JsonFilePipeline(config.getCrawler()));
-        spider.thread(1);
-        for (int i = 0; i < 1; i++) {
+        spider.thread(6); // 经验证不被Captcha制裁的最大线程数量
+        for (int i = 0; i < 4; i++) {
             spider.addUrl("https://list.jd.com/list.html?cat=9987%2C653%2C655&page=" + i + "&s=57&click=0");
         }
         spider.runAsync();

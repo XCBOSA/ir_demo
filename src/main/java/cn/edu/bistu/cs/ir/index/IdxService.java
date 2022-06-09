@@ -2,17 +2,19 @@ package cn.edu.bistu.cs.ir.index;
 
 import cn.edu.bistu.cs.ir.config.Config;
 import cn.edu.bistu.cs.ir.utils.StringUtil;
+import com.hankcs.hanlp.corpus.occurrence.TermOccurrence;
+import kotlin.Pair;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.document.*;
-import org.apache.lucene.index.DirectoryReader;
-import org.apache.lucene.index.IndexWriter;
-import org.apache.lucene.index.IndexWriterConfig;
-import org.apache.lucene.index.Term;
+import org.apache.lucene.index.*;
+import org.apache.lucene.queryparser.classic.MultiFieldQueryParser;
 import org.apache.lucene.queryparser.classic.QueryParser;
+import org.apache.lucene.queryparser.xml.builders.RangeQueryBuilder;
 import org.apache.lucene.search.*;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
+import org.apache.lucene.util.BytesRef;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.DisposableBean;
@@ -86,7 +88,7 @@ public class IdxService implements DisposableBean {
         Analyzer analyzer = DEFAULT_ANALYZER.getConstructor().newInstance();
         QueryParser parser = new QueryParser("TITLE", analyzer);
         Query query = parser.parse(kw);
-        TopDocs docs =searcher.search(query, 10);
+        TopDocs docs = searcher.search(query, 10);
         ScoreDoc[] hits = docs.scoreDocs;
         List<Document> results = new ArrayList<>();
         for (ScoreDoc doc : hits) {
@@ -98,6 +100,80 @@ public class IdxService implements DisposableBean {
     //TODO 请大家在这里添加更多的检索函数，如针对发表时间的范围检索等，
     // 添加了检索函数后，还需要相应地在Controller中添加接口
 
+    public int queryDocumentCount() throws Exception {
+        DirectoryReader reader = DirectoryReader.open(writer);
+        return reader.numDocs();
+    }
+
+    public List<Pair<String, String>> queryByName(String name) throws Exception {
+        DirectoryReader reader = DirectoryReader.open(writer);
+        IndexSearcher searcher = new IndexSearcher(reader);
+        Query query = new WildcardQuery(new Term("name", "*" + name + "*"));
+        TopDocs docs = searcher.search(query, 10);
+        ScoreDoc[] hits = docs.scoreDocs;
+        List<Document> results = new ArrayList<>();
+        for (ScoreDoc doc : hits) {
+            results.add(searcher.doc(doc.doc));
+        }
+        return results
+                .stream()
+                .map(t -> new Pair<>(t.get("name"), t.get("sku")))
+                .toList();
+    }
+
+    public List<Pair<String, String>> queryByMoneyRange(float min, float max) throws Exception {
+        DirectoryReader reader = DirectoryReader.open(writer);
+        IndexSearcher searcher = new IndexSearcher(reader);
+        Query query = FloatPoint.newRangeQuery("price", min, max);
+        TopDocs docs = searcher.search(query, 10);
+        ScoreDoc[] hits = docs.scoreDocs;
+        List<Document> results = new ArrayList<>();
+        for (ScoreDoc doc : hits) {
+            results.add(searcher.doc(doc.doc));
+        }
+        return results
+                .stream()
+                .map(t -> new Pair<>(t.get("name"), t.get("sku")))
+                .toList();
+    }
+
+    public List<Pair<String, String>> queryByNameAndDescriptionBooleanQuery(String name, String description) throws Exception {
+        DirectoryReader reader = DirectoryReader.open(writer);
+        IndexSearcher searcher = new IndexSearcher(reader);
+        BooleanQuery booleanQuery = new BooleanQuery.Builder()
+                .add(new WildcardQuery(new Term("name", "*" + name + "*")), BooleanClause.Occur.MUST)
+                .add(new WildcardQuery(new Term("description", "*" + description + "*")), BooleanClause.Occur.MUST)
+                .build();
+        TopDocs docs = searcher.search(booleanQuery, 10);
+        ScoreDoc[] hits = docs.scoreDocs;
+        List<Document> results = new ArrayList<>();
+        for (ScoreDoc doc : hits) {
+            results.add(searcher.doc(doc.doc));
+        }
+        return results
+                .stream()
+                .map(t -> new Pair<>(t.get("name"), t.get("sku")))
+                .toList();
+    }
+
+    public List<Pair<String, String>> queryByNameAndDescriptionQueryParser(String name, String description) throws Exception {
+        DirectoryReader reader = DirectoryReader.open(writer);
+        IndexSearcher searcher = new IndexSearcher(reader);
+
+        Analyzer analyzer = DEFAULT_ANALYZER.getConstructor().newInstance();
+        Query query = MultiFieldQueryParser.parse(new String[] { name, description }, new String[] { "name", "description" }, analyzer);
+
+        TopDocs docs = searcher.search(query, 10);
+        ScoreDoc[] hits = docs.scoreDocs;
+        List<Document> results = new ArrayList<>();
+        for (ScoreDoc doc : hits) {
+            results.add(searcher.doc(doc.doc));
+        }
+        return results
+                .stream()
+                .map(t -> new Pair<>(t.get("name"), t.get("sku")))
+                .toList();
+    }
 
     @Override
     public void destroy(){

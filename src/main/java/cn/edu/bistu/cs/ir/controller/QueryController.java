@@ -2,6 +2,7 @@ package cn.edu.bistu.cs.ir.controller;
 
 import cn.edu.bistu.cs.ir.index.IdxService;
 import cn.edu.bistu.cs.ir.utils.QueryResponse;
+import kotlin.Pair;
 import org.apache.lucene.document.Document;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -62,4 +63,58 @@ public class QueryController {
             return QueryResponse.genErr("检索过程中发生异常");
         }
     }
+
+    @RequestMapping("/cnt")
+    public QueryResponse<Integer> getIndexCount() {
+        try {
+            return QueryResponse.genSucc("succ", idxService.queryDocumentCount());
+        }
+        catch (Exception e) {
+            return QueryResponse.genErr(e.toString());
+        }
+    }
+
+    @RequestMapping("/byName")
+    public QueryResponse<List<Pair<String, String>>> queryByName(
+            @RequestParam("name") String name) {
+        try {
+            return QueryResponse.genSucc("succ", idxService.queryByName(name));
+        } catch (Exception e) {
+            return QueryResponse.genErr(e.toString());
+        }
+    }
+
+    @RequestMapping("/byMoneyRange")
+    public QueryResponse<List<Pair<String, String>>> queryByMoneyRange(
+            @RequestParam("min") Float min,
+            @RequestParam("max") Float max) {
+        try {
+            return QueryResponse.genSucc("succ", idxService.queryByMoneyRange(min, max));
+        } catch (Exception e) {
+            return QueryResponse.genErr(e.toString());
+        }
+    }
+
+    @RequestMapping("/byNameAndDescriptionBooleanQuery")
+    public QueryResponse<List<Pair<String, String>>> queryByNameAndDescriptionBooleanQuery(
+            @RequestParam("name") String name,
+            @RequestParam("description") String description) {
+        try {
+            return QueryResponse.genSucc("succ", idxService.queryByNameAndDescriptionBooleanQuery(name, description));
+        } catch (Exception e) {
+            return QueryResponse.genErr(e.toString());
+        }
+    }
+
+    @RequestMapping("/byNameAndDescriptionQueryParser")
+    public QueryResponse<List<Pair<String, String>>> queryByNameAndDescriptionQueryParser(
+            @RequestParam("name") String name,
+            @RequestParam("description") String description) {
+        try {
+            return QueryResponse.genSucc("succ", idxService.queryByNameAndDescriptionQueryParser(name, description));
+        } catch (Exception e) {
+            return QueryResponse.genErr(e.toString());
+        }
+    }
+
 }

@@ -41,8 +41,8 @@ public class JDMailCrawler implements PageProcessor {
                     .toList();
             log.info("解析目录成功 {} 页", products.size());
 
-            //products.forEach(v -> page.addTargetRequest(v));
-            page.addTargetRequest(products.get(0));
+            products.forEach(v -> page.addTargetRequest(v));
+            //page.addTargetRequest(products.get(0));
 
             page.setSkip(true);
         } else if (url.startsWith("https://item.jd.com/")) {
@@ -68,8 +68,14 @@ public class JDMailCrawler implements PageProcessor {
             // JS接口
             log.info("解析JSON接口 {}", url);
             JDProduct model = page.getRequest().getExtra("model");
-            String commentCount = new JsonPathSelector("$.CommentsCount[0].CommentCountStr").select(page.getRawText());
-            String rate = new JsonPathSelector("$.CommentsCount[0].GoodRate").select(page.getRawText());
+            String commentCount = "";
+            try {
+                commentCount = new JsonPathSelector("$.CommentsCount[0].CommentCountStr").select(page.getRawText());
+            } catch (Exception e) { }
+            String rate = "";
+            try {
+                rate = new JsonPathSelector("$.CommentsCount[0].GoodRate").select(page.getRawText());
+            } catch (Exception e) { }
             model.setTotalCommentCount(commentCount);
             model.setRate(rate);
             page.putField("MODEL", model);

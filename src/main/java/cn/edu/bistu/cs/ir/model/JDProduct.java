@@ -3,9 +3,7 @@ package cn.edu.bistu.cs.ir.model;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.apache.lucene.document.Document;
-import org.apache.lucene.document.Field;
-import org.apache.lucene.document.StringField;
+import org.apache.lucene.document.*;
 
 @Data
 @AllArgsConstructor
@@ -29,10 +27,14 @@ public class JDProduct implements LucenePipelineAdaptableModel {
         Document document = new Document();
         document.add(new StringField("sku", sku, Field.Store.YES));
         document.add(new StringField("name", name, Field.Store.YES));
-        document.add(new StringField("price", price, Field.Store.YES));
+        try {
+            document.add(new FloatPoint("price", Float.parseFloat(price)));
+        } catch (Exception e) { }
         document.add(new StringField("totalCommentCount", totalCommentCount, Field.Store.YES));
-        document.add(new StringField("rate", rate, Field.Store.YES));
-        document.add(new StringField("description", description, Field.Store.YES));
+        try {
+            document.add(new FloatPoint("rate", Float.parseFloat(rate)));
+        } catch (Exception e) { }
+        document.add(new TextField("description", description, Field.Store.YES));
         document.add(new StringField("url", url, Field.Store.YES));
         return document;
     }
